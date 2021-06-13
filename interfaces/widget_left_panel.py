@@ -4,17 +4,17 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QIODevice
 from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
 
-from left_panel import Ui_Form as WidgetLeftPanel
+from .left_panel import Ui_Form as WidgetLeftPanel
 
 
 class LeftPanel(QtWidgets.QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, serial: QSerialPort, parent=None):
         super().__init__()
         self.parent = parent if parent else None
         self.ui = WidgetLeftPanel()
         self.ui.setupUi(self)
-        self.serial = None
+        self.serial = serial
 
         self.__set_comport_combobox()
         self.__setup_buttons()
@@ -36,7 +36,6 @@ class LeftPanel(QtWidgets.QWidget):
         try:
             baud = int(self.ui.portComboBox.currentText())
             name = self.ui.comPortComboBox.currentText()
-            self.serial = QSerialPort()
             self.serial.setBaudRate(baud)
             self.serial.setPortName(name)
         except Exception as exc:
