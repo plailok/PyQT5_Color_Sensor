@@ -1,11 +1,11 @@
 from typing import List, Optional, Tuple
 import enum
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QColor
 from PyQt5.QtSerialPort import QSerialPort
-from colour import Color
 
 DeviceData = Optional[List[float]]
-MeasurementData = Tuple[Color, DeviceData]
+MeasurementData = Tuple[QColor, DeviceData]
 
 
 class DeviceTransport:
@@ -30,8 +30,8 @@ class DeviceTransport:
     def disconnect(self):
         self.serial.close()
 
-    def measure(self, color: Color):
-        rgb = [int(val * 255) for val in color.get_rgb()]
+    def measure(self, color: QColor):
+        rgb = QColor.getRgb()
         self.serial.write(f"Mr{rgb[0]} g{rgb[1]} b{color.rgb[2]}\n".encode('ascii'))
         self.state = self.State.MEASURE
 
@@ -60,7 +60,7 @@ class DeviceController:
     def disconnect(self):
         self._transport.disconnect()
 
-    def single_measurement(self, color: Color) -> MeasurementData:
+    def single_measurement(self, color: QColor) -> MeasurementData:
         self._transport.measure(color)
         while self._transport.state is self._transport.State.MEASURE:
             pass
@@ -68,7 +68,7 @@ class DeviceController:
         return color, data
 
     def spectr_measurement(self) -> List[MeasurementData]:
-        hsv_spectr = (Color(hsl=(h/360, 1, 1)) for h in range(360))
+        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(360))
         return [
             self.single_measurement(color) for color in hsv_spectr
         ]
@@ -78,4 +78,4 @@ class DeviceController:
         while self._transport.state is self._transport.State.MEASURE:
             pass
         data = self._transport._data
-        return Color(rgb=(1, 1, 1)), data
+        return QColor(255, 255, 255), data
