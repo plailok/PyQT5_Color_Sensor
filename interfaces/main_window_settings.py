@@ -1,17 +1,19 @@
 import sys
 
 from PyQt5 import QtWidgets
+from PyQt5.QtSerialPort import QSerialPort
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout)
 
-from widget_color_setting import ColorSettings
-from widget_left_panel import LeftPanel
-from widget_right_panel import RightPanel
+from .widget_color_setting import ColorSettings
+from .widget_left_panel import LeftPanel
+from .widget_right_panel import RightPanel
 
 
 class SensorMainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.serial = QSerialPort()
         self.__set_and_place_widgets()
         self.setGeometry(300, 100, 1000, 600)
         self.setWindowTitle("To_Test")
@@ -26,7 +28,7 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         :return:
         """
         self.holder = QtWidgets.QWidget()
-        self.left = LeftPanel()
+        self.left = LeftPanel(serial=QSerialPort())
         self.color = ColorSettings()
         self.right = RightPanel()
         self.h_layout = QHBoxLayout()

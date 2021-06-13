@@ -4,6 +4,11 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
+import sys
+from interfaces.main_window_settings import SensorMainWindow
+from PyQt5 import QtWidgets
+
+
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
@@ -11,6 +16,9 @@ def print_hi(name):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    app = QtWidgets.QApplication([])
+    application = SensorMainWindow()
+    application.show()
+    sys.exit(app.exec())
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

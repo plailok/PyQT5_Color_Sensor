@@ -3,7 +3,7 @@ import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QSpinBox, QDoubleSpinBox
 
-from color_settings import Ui_Form as WidgetColorSettings
+from .color_settings import Ui_Form as WidgetColorSettings
 
 
 class ColorSettings(QtWidgets.QWidget):
