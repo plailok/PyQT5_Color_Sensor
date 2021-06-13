@@ -16,6 +16,18 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         self.setGeometry(300, 100, 1000, 600)
         self.setWindowTitle("To_Test")
         self.setCentralWidget(self.holder)
+        self.color_values = self.color.values
+        self.indicator = self.left.ui.respondLineEdit
+        self.serial_port = self.left.serial
+
+    def change_indicator_color(self, color):
+        """
+        Possible color for method:
+            gray, black, green, red, blue
+        :param color: string
+        :return:
+        """
+        self.indicator.setStyleSheet(f"color:{color}")
 
     def __set_and_place_widgets(self):
         """
@@ -42,4 +54,5 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     application = SensorMainWindow()
     application.show()
+
     sys.exit(app.exec())

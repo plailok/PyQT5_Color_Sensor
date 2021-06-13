@@ -14,6 +14,7 @@ class LeftPanel(QtWidgets.QWidget):
         self.parent = parent if parent else None
         self.ui = WidgetLeftPanel()
         self.ui.setupUi(self)
+        self.serial = None
 
         self.__set_comport_combobox()
         self.__setup_buttons()
@@ -47,7 +48,7 @@ class LeftPanel(QtWidgets.QWidget):
         self.__set_comport_combobox()
 
     def __single_pressed(self):
-        print('start') if not self.parent else None
+        print('single') if not self.parent else None
 
     def __start_pressed(self):
         print('start') if not self.parent else None
