@@ -1,10 +1,9 @@
 import sys
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QIODevice
 from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
 
-from .left_panel import Ui_Form as WidgetLeftPanel
+from left_panel import Ui_Form as WidgetLeftPanel
 
 
 class LeftPanel(QtWidgets.QWidget):
@@ -68,6 +67,6 @@ class LeftPanel(QtWidgets.QWidget):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = LeftPanel()
+    application = LeftPanel(serial=QSerialPort())
     application.show()
     sys.exit(app.exec())

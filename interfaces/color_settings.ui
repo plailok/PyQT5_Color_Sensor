@@ -27,7 +27,7 @@ color:rgb(123, 100, 200);
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="rgb">
       <attribute name="title">
@@ -44,6 +44,9 @@ color:rgb(123, 100, 200);
          </property>
          <item>
           <widget class="QLabel" name="RLable">
+           <property name="styleSheet">
+            <string notr="true">color: rgb(113, 125, 114)</string>
+           </property>
            <property name="text">
             <string>R</string>
            </property>

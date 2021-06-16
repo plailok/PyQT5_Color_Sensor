@@ -1,5 +1,6 @@
-from typing import List, Optional, Tuple
 import enum
+from typing import List, Optional, Tuple
+
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtSerialPort import QSerialPort
@@ -9,29 +10,30 @@ MeasurementData = Tuple[QColor, DeviceData]
 
 
 class DeviceTransport:
-
     class State(enum.Enum):
-        IDLE = 1 
+        IDLE = 1
         MEASURE = 2
-    
-    #signals
+
+    # signals
     dataReady = pyqtSignal()
 
     def __init__(self, serial: QSerialPort) -> None:
         self.serial = serial
         self.serial.readyRead.connect(self._read_data)
-        self._data : List[float] = []
+        self._data: List[float] = []
         self._color = None
         self.state = self.State.IDLE
 
     def connect(self, port: str) -> bool:
+        print(port)
         return self.serial.open(self.serial.OpenModeFlag.ReadWrite)
 
     def disconnect(self):
         self.serial.close()
 
     def measure(self, color: QColor):
-        rgb = QColor.getRgb()
+        print(f'Measure {self.serial}   {type(self.serial)}')
+        rgb = color.getRgb()
         self.serial.write(f"Mr{rgb[0]} g{rgb[1]} b{color.rgb[2]}\n".encode('ascii'))
         self.state = self.State.MEASURE
 
@@ -79,3 +81,6 @@ class DeviceController:
             pass
         data = self._transport._data
         return QColor(255, 255, 255), data
+
+    def get_serial(self):
+        return self._transport.serial

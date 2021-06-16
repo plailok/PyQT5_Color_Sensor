@@ -7,12 +7,10 @@ from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout)
 from controller import (
     DeviceController,
     DeviceTransport,
-    MeasurementData,
 )
-
-from .widget_color_setting import ColorSettings
-from .widget_left_panel import LeftPanel
-from .widget_right_panel import RightPanel
+from widget_color_setting import ColorSettings
+from widget_left_panel import LeftPanel
+from widget_right_panel import RightPanel
 
 
 class SensorMainWindow(QtWidgets.QMainWindow):
@@ -22,12 +20,13 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         self.serial = QSerialPort()
         self.device = DeviceController(DeviceTransport(self.serial))
         self.__set_and_place_widgets()
+        self.__set_buttons()
         self.setGeometry(300, 100, 1000, 600)
         self.setWindowTitle("To_Test")
         self.setCentralWidget(self.holder)
-        self.color_values = self.color.values
+        self.color_values = self.color.color
         self.indicator = self.left.ui.respondLineEdit
-        self.serial_port = self.left.serial
+        self.current_port = self.left.ui.comPortComboBox.currentText
 
     def change_indicator_color(self, color):
         """
@@ -38,6 +37,32 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         """
         self.indicator.setStyleSheet(f"color:{color}")
 
+    def __set_buttons(self):
+        self.left.ui.connectButton.clicked.connect(self.connect)
+        self.left.ui.ethalonButton.clicked.connect(self.ethalon_measure)
+        self.left.ui.singleButton.clicked.connect(self.single_measure)
+        # self.left.ui.multiButton.clicked.connect(self.connect)
+        # self.left.ui.startButton.clicked.connect(self.connect)
+
+    def ethalon_measure(self):
+        self.device.calibrate()
+
+    def single_measure(self):
+        name = self.device.get_serial()
+        name.portName()
+        color = self.color_values
+        result = self.device.single_measurement(color)
+
+    def connect(self):
+        serial = self.current_port()
+        mask = self.left.ui.portComboBox.currentText()
+        port = f'{serial}:{mask}'
+        self.device.connect(port)
+        self.indicator.setStyleSheet('color:green')
+
+    def disconnect(self):
+        self.device.disconnect()
+
     def __set_and_place_widgets(self):
         """
         Create an important QWidgets and place them on right position.
@@ -47,7 +72,7 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         :return:
         """
         self.holder = QtWidgets.QWidget()
-        self.left = LeftPanel(serial=QSerialPort())
+        self.left = LeftPanel(serial=QSerialPort(), parent=self)
         self.color = ColorSettings()
         self.right = RightPanel()
         self.h_layout = QHBoxLayout()

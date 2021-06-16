@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QSpinBox, QDoubleSpinBox
 
-from .color_settings import Ui_Form as WidgetColorSettings
+from color_settings import Ui_Form as WidgetColorSettings
 
 
 class ColorSettings(QtWidgets.QWidget):
@@ -30,7 +30,8 @@ class ColorSettings(QtWidgets.QWidget):
         self.ui.BspinBox.valueChanged.connect(self.__on_change_b)
         self.ui.HSpinBox.valueChanged.connect(self.__on_change_h)
         self.ui.SspinBox.valueChanged.connect(self.__on_change_s)
-        self.ui.RspinBox.valueChanged.connect(self.__on_change_v)
+        self.ui.VspinBox.valueChanged.connect(self.__on_change_v)
+
 
     def __on_change_r(self, value: int):
         self.color.setRed(int(value))

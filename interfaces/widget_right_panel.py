@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QHBoxLayout, QWidget, QTableWidgetItem, QFileDialog
 
-from .right_panel import Ui_Form as WidgetRightPanel
+from right_panel import Ui_Form as WidgetRightPanel
 
 
 class RightPanel(QtWidgets.QWidget):
@@ -15,7 +15,6 @@ class RightPanel(QtWidgets.QWidget):
         self.parent = parent if parent else None
         self.ui = WidgetRightPanel()
         self.ui.setupUi(self)
-
         self.count = 0
         self.file_to_save_name = None
         self.admin_widget = None

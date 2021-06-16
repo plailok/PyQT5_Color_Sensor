@@ -32,10 +32,10 @@ class Ui_Form(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(20, -1, 20, -1)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.RLable = QtWidgets.QLabel(self.rgb)
-        self.RLable.setAlignment(QtCore.Qt.AlignCenter)
-        self.RLable.setObjectName("RLable")
-        self.horizontalLayout.addWidget(self.RLable)
+        self.RLabel = QtWidgets.QLabel(self.rgb)
+        self.RLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.RLabel.setObjectName("RLable")
+        self.horizontalLayout.addWidget(self.RLabel)
         self.RspinBox = QtWidgets.QSpinBox(self.rgb)
         self.RspinBox.setAlignment(QtCore.Qt.AlignCenter)
         self.RspinBox.setMaximum(255)
@@ -137,7 +137,7 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.RLable.setText(_translate("Form", "R"))
+        self.RLabel.setText(_translate("Form", "R"))
         self.GLabel.setText(_translate("Form", "G"))
         self.BLabel.setText(_translate("Form", "B"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.rgb), _translate("Form", "RGB"))
