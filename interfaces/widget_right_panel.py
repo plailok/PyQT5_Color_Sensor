@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QHBoxLayout, QWidget, QTableWidgetItem, QFileDialog
 
-from right_panel import Ui_Form as WidgetRightPanel
+from .right_panel import Ui_Form as WidgetRightPanel
 
 
 class RightPanel(QtWidgets.QWidget):

@@ -8,9 +8,9 @@ from controller import (
     DeviceController,
     DeviceTransport,
 )
-from widget_color_setting import ColorSettings
-from widget_left_panel import LeftPanel
-from widget_right_panel import RightPanel
+from .widget_color_setting import ColorSettings
+from .widget_left_panel import LeftPanel
+from .widget_right_panel import RightPanel
 
 
 class SensorMainWindow(QtWidgets.QMainWindow):
@@ -57,7 +57,7 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         serial = self.current_port()
         mask = self.left.ui.portComboBox.currentText()
         port = f'{serial}:{mask}'
-        self.device.connect(port)
+        is_connected = self.device.connect(serial)
         self.indicator.setStyleSheet('color:green')
 
     def disconnect(self):

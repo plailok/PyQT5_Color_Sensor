@@ -3,7 +3,7 @@ import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
 
-from left_panel import Ui_Form as WidgetLeftPanel
+from .left_panel import Ui_Form as WidgetLeftPanel
 
 
 class LeftPanel(QtWidgets.QWidget):
