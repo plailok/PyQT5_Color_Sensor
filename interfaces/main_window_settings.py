@@ -28,6 +28,18 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         self.indicator = self.left.ui.respondLineEdit
         self.current_port = self.left.ui.comPortComboBox.currentText
 
+        # measurement signals
+        self.device.singleMeasureDone.connect(self.render_measurement)
+        self.device.spectrMeasureDone.connect(self.render_measurement)
+        self.device.calibrationDone.connect(self.render_measurement)
+
+    def render_measurement(self):
+        for color, data in self.device.data:
+            buf = [color.getHsv()[0], *[str(i) for i in data]]
+            self.right.set_list_value(
+                buf
+            )
+
     def change_indicator_color(self, color):
         """
         Possible color for method:
@@ -51,7 +63,8 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         name = self.device.get_serial()
         name.portName()
         color = self.color_values
-        result = self.device.single_measurement(color)
+        self.device.single_measurement(color)
+        
 
     def connect(self):
         serial = self.current_port()
