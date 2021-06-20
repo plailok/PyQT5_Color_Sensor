@@ -13,6 +13,7 @@ class DeviceTransport(QObject):
     class State(enum.Enum):
         IDLE = 1
         MEASURE = 2
+        ERROR = 3
 
     # signals
     dataReady = pyqtSignal()
@@ -26,7 +27,6 @@ class DeviceTransport(QObject):
         self.state = self.State.IDLE
 
     def connect(self, port: str, baudrate: int = 115200) -> bool:
-        print(port)
         self.serial.setBaudRate(baudrate)
         self.serial.setPortName(port)
         return self.serial.open(self.serial.OpenModeFlag.ReadWrite)
@@ -34,14 +34,21 @@ class DeviceTransport(QObject):
     def disconnect(self):
         self.serial.close()
 
+    def turn_off_led(self):
+        rgb = [0, 0, 0]
+        data = f"Mr{rgb[0]} g{rgb[1]} b{rgb[2]}\n".encode('ascii')
+        self.serial.write(data)
+        self.serial.clear()
+
     def measure(self, color: QColor):
-        print(f'Measure {self.serial}   {type(self.serial)}')
         rgb = color.getRgb()
         data = f"Mr{rgb[0]} g{rgb[1]} b{rgb[2]}\n".encode('ascii')
         self.serial.write(data)
         self.state = self.State.MEASURE
-        if self.serial.waitForReadyRead(1000):
+        if self.serial.waitForReadyRead(100000):
             self._read_data()
+        else:
+            self.state = self.State.ERROR
 
     def calibrate(self):
         self.serial.write(f"C\n".encode('ascii'))
@@ -50,9 +57,10 @@ class DeviceTransport(QObject):
     def _read_data(self):
         if self.serial.read(1) == b'D':
             data = ''
+            d = self.serial.readAll()
             while self.serial.waitForReadyRead(50):
                 data += str(self.serial.readAll(), 'ascii')
-            self._data = [float(val) for val in data.split(',')]
+            self._data = [float(val) for val in d[:-4].split(',')]
         else:
             self.serial.clear(self.serial.Direction.AllDirections)
             self._data = None
@@ -63,6 +71,7 @@ class DeviceTransport(QObject):
 class DeviceController(QObject):
 
     def __init__(self, transport: DeviceTransport) -> None:
+        super(DeviceController, self).__init__()
         self._transport = transport
 
     def connect(self, port: str, baudrate: int = 115200) -> bool:
@@ -70,6 +79,9 @@ class DeviceController(QObject):
 
     def disconnect(self):
         self._transport.disconnect()
+
+    def turn_off_led(self):
+        self._transport.turn_off_led()
 
     def single_measurement(self, color: QColor) -> MeasurementData:
         self._transport.measure(color)
@@ -79,7 +91,7 @@ class DeviceController(QObject):
         return color, data
 
     def spectr_measurement(self) -> List[MeasurementData]:
-        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(360))
+        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(10))
         return [
             self.single_measurement(color) for color in hsv_spectr
         ]

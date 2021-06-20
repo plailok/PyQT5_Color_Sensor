@@ -34,6 +34,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QCheckBox" name="isAdminModeCheckButton">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="text">
          <string>ADMIN MODE</string>
         </property>
@@ -44,6 +47,27 @@
    </item>
    <item>
     <widget class="QTableWidget" name="tableWidget">
+     <property name="tabKeyNavigation">
+      <bool>false</bool>
+     </property>
+     <property name="showDropIndicator" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="dragDropOverwriteMode">
+      <bool>false</bool>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideNone</enum>
+     </property>
+     <property name="gridStyle">
+      <enum>Qt::NoPen</enum>
+     </property>
      <property name="rowCount">
       <number>2</number>
      </property>
@@ -196,16 +220,29 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QPushButton" name="saveTableButton">
        <property name="text">
-        <string>Save Table</string>
+        <string>IMPORT TO EXCEL</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="clearTableButton">
        <property name="text">
-        <string>Clear Table</string>
+        <string>CLEAR</string>
        </property>
       </widget>
      </item>
