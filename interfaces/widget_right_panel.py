@@ -24,7 +24,6 @@ class ExcelSaver:
         self.file_name = name[0].url().split('/')[-1]
 
     def save(self):
-        # pprint.pprint(self.result)
         data = pd.DataFrame(self.result)
         data.to_excel(self.file_name, sheet_name='Set_1')
 
@@ -50,6 +49,9 @@ class ExcelSaver:
                 result_in_line[0] = new_name
                 self.result[result_in_line[0]] = {self.labels[index]: result_in_line[index] for index in
                                                   range(1, len(result_in_line))}
+
+    def load(self):
+        pass
 
 
 class RightPanel(QtWidgets.QWidget):
