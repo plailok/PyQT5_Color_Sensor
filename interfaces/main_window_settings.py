@@ -1,6 +1,8 @@
 import sys
+import time
 
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QThread
 from PyQt5.QtSerialPort import QSerialPort
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout)
 
@@ -17,16 +19,16 @@ class SensorMainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.serial = QSerialPort()
-        self.device = DeviceController(DeviceTransport(self.serial))
+        # => SETTINGS
+        self.__create_thread()
         self.__set_and_place_widgets()
         self.__set_buttons()
-        self.setGeometry(300, 100, 1000, 600)
-        self.setWindowTitle("To_Test")
-        self.setCentralWidget(self.holder)
+        self.__set_custom()
+        # => WIDGETS TO CONTROL
         self.color_values = self.color.color
         self.indicator = self.left.ui.respondLineEdit
         self.current_port = self.left.ui.comPortComboBox.currentText
+
 
     def change_indicator_color(self, color):
         """
@@ -39,19 +41,31 @@ class SensorMainWindow(QtWidgets.QMainWindow):
 
     def __set_buttons(self):
         self.left.ui.connectButton.clicked.connect(self.connect)
-        self.left.ui.ethalonButton.clicked.connect(self.ethalon_measure)
+        self.left.ui.ethalonButton.clicked.connect(self.reference_measure)
         self.left.ui.singleButton.clicked.connect(self.single_measure)
-        # self.left.ui.multiButton.clicked.connect(self.connect)
+        self.left.ui.multiButton.clicked.connect(self.spectrum_measurement)
         # self.left.ui.startButton.clicked.connect(self.connect)
 
-    def ethalon_measure(self):
-        self.device.calibrate()
+    def spectrum_measurement(self):
+        result = self.device.spectr_measurement()
+        print(result)
+        for color, values in result:
+            print(values)
+
+    def reference_measure(self):
+        color, result = self.device.calibrate()
+        self.right.set_list_value(result)
 
     def single_measure(self):
         name = self.device.get_serial()
         name.portName()
         color = self.color_values
-        result = self.device.single_measurement(color)
+        color, result = self.device.single_measurement(color)
+        sample = 'Sample'
+        result.insert(0, sample)
+        self.right.set_list_value(result)
+        time.sleep(1)
+        self.device.turn_off_led()
 
     def connect(self):
         serial = self.current_port()
@@ -63,6 +77,18 @@ class SensorMainWindow(QtWidgets.QMainWindow):
     def disconnect(self):
         self.device.disconnect()
 
+    def __set_custom(self):
+        self.setGeometry(300, 100, 1000, 600)
+        self.setWindowTitle("To_Test")
+        self.setCentralWidget(self.holder)
+
+    def __create_thread(self):
+        self.thread = QThread(self)
+        self.serial = QSerialPort()
+        self.device = DeviceController(DeviceTransport(self.serial))
+        self.device.moveToThread(self.thread)
+        self.thread.start()
+
     def __set_and_place_widgets(self):
         """
         Create an important QWidgets and place them on right position.
@@ -72,7 +98,7 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         :return:
         """
         self.holder = QtWidgets.QWidget()
-        self.left = LeftPanel(serial=QSerialPort(), parent=self)
+        self.left = LeftPanel(parent=self)
         self.color = ColorSettings()
         self.right = RightPanel()
         self.h_layout = QHBoxLayout()
@@ -88,5 +114,4 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     application = SensorMainWindow()
     application.show()
-
     sys.exit(app.exec())
