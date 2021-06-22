@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QHBoxLayout, QWidget, QTableWidgetItem, QFileDialog
 
-from .right_panel import Ui_Form as WidgetRightPanel
+from right_panel import Ui_Form as WidgetRightPanel
 
 
 class ExcelSaver:
@@ -15,10 +15,10 @@ class ExcelSaver:
 
     def __init__(self, name=None):
         self.result = {}
-        self.labels = ['SAMPLE',
-                       'λ1', 'λ2', 'λ3', 'λ4', 'λ5', 'λ6',
-                       'λ7', 'λ8', 'λ9', 'λ10', 'λ11', 'λ12',
-                       'λ13', 'λ14', 'λ15', 'λ16', 'λ17', 'λ18']
+        self.labels = ['Name',
+                       '410', '435', '460', '485', '510', '535',
+                       '560', '585', '610', '645', '680', '705',
+                       '730', '760', '810', '860', '900', '940']
         self.last_s = 'S0'
         self.current_set = 0
         self.file_name = name[0].url().split('/')[-1]
@@ -67,10 +67,10 @@ class RightPanel(QtWidgets.QWidget):
         self.file_to_save_name = None
         self.admin_widget = None
         self.isSaved = False
-        self.LABELS = ['SAMPLE',
-                       'λ1', 'λ2', 'λ3', 'λ4', 'λ5', 'λ6',
-                       'λ7', 'λ8', 'λ9', 'λ10', 'λ11', 'λ12',
-                       'λ13', 'λ14', 'λ15', 'λ16', 'λ17', 'λ18']
+        self.LABELS = ['Name',
+                       '410', '435', '460', '485', '510', '535',
+                       '560', '585', '610', '645', '680', '705',
+                       '730', '760', '810', '860', '900', '940']
         self.RESULT = []
         self.saver = None
         self.__set_table()
@@ -146,6 +146,8 @@ class RightPanel(QtWidgets.QWidget):
     def __clear_table(self):
         self.ui.tableWidget.clear()
         self.ui.tableWidget.setHorizontalHeaderLabels(self.LABELS)
+        self.count = 0
+        self.ui.tableWidget.setRowCount(1)
 
     def __add_to_saver(self):
         for result in self.RESULT:
@@ -165,6 +167,7 @@ class RightPanel(QtWidgets.QWidget):
         h_layout.addWidget(button, 1)
         self.admin_widget.setLayout(h_layout)
         self.ui.verticalLayout_2.addWidget(self.admin_widget)
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])

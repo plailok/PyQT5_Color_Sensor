@@ -10,12 +10,27 @@ from controller import (
     DeviceController,
     DeviceTransport,
 )
-from .widget_color_setting import ColorSettings
-from .widget_left_panel import LeftPanel
-from .widget_right_panel import RightPanel
+from widget_color_setting import ColorSettings
+from widget_left_panel import LeftPanel
+from widget_right_panel import RightPanel
 
 
-class SensorMainWindow(QtWidgets.QMainWindow):
+class SensorMainWindowSettings(QtWidgets.QMainWindow):
+    class Positioner:
+        """
+        The class is designed to permute the result by wavelength
+        wavelengths in order:
+        0 - name; 13 - 410, 14 - 435, 15 - 460, 16 - 485, 17 - 510
+            18 - 535, 7 - 560, 8 - 585, 1 - 610, 9 - 645, 2 - 680,
+            10 - 705, 3 - 730, 4 - 760, 5 - 810, 6 - 860, 11 - 900
+            12 - 940
+        """
+        correct_position = [0, 13, 14, 15, 16, 17,
+                            18, 7, 8, 1, 9, 2, 10,
+                            3, 4, 5, 6, 11, 12]
+
+        def get_corrected(self, result: list) -> list:
+            return [result[index] for index in self.correct_position]
 
     def __init__(self):
         super().__init__()
@@ -24,66 +39,118 @@ class SensorMainWindow(QtWidgets.QMainWindow):
         self.__set_and_place_widgets()
         self.__set_buttons()
         self.__set_custom()
-        # => WIDGETS TO CONTROL
+        # => MAIN
         self.color_values = self.color.color
         self.indicator = self.left.ui.respondLineEdit
         self.current_port = self.left.ui.comPortComboBox.currentText
+        self.positioner = self.Positioner()
 
-
-    def change_indicator_color(self, color):
+    def spectrum_measurement(self):
         """
-        Possible color for method:
-            gray, black, green, red, blue
-        :param color: string
+        Measure for each value for HSV circle
         :return:
         """
-        self.indicator.setStyleSheet(f"color:{color}")
+        self.__change_buttons_availability(False)
+        result = self.device.spectr_measurement()
+        self.__change_buttons_availability(True)
+        for color, value in result:
+            h, s, v, _ = color.getHsv()
+            sample = f'S{h}'
+            value.insert(0, sample)
+            self.right.set_list_value(value)
+
+    def reference_measure(self):
+        """
+        Reference measurement
+        :return:
+        """
+        cur_color = self.color_values.getRgb()
+        self.color_values.setRgb(254, 254, 254)
+        self.single_measure(is_calibrate=True, color=self.color_values)
+        self.color_values.setRgb(*cur_color)
+        self.device.turn_off_led()
+
+    def single_measure(self, is_calibrate: bool = None, color=None):
+        """
+        is_calibrate == True & color is not None => Etalon measurement ( color = (255, 255, 255) )
+        is_calibrate == False & color is None
+        is_calibrate is None & color is None => Normal single measurement
+        :param is_calibrate:
+        :param color:
+        :return:
+        """
+        self.__change_buttons_availability(False)
+        if is_calibrate is True and color:
+            rgb_color = color
+            color, result = self.device.single_measurement(rgb_color)
+            set_name = 'EC'
+        elif is_calibrate is False:
+            rgb_color = self.color_values
+            color, result = self.device.single_measurement(rgb_color)
+            set_name = self.left.ui.lineEdit.text()
+            if set_name == '':
+                set_name = 'Sample'
+        else:
+            rgb_color = self.color_values
+            color, result = self.device.single_measurement(rgb_color)
+            set_name = 'Single'
+        self.device.turn_off_led()
+        result.insert(0, set_name)
+        corrected_result = self.positioner.get_corrected(result)
+        self.right.set_list_value(corrected_result)
+        time.sleep(3)
+        self.__change_buttons_availability(True)
+        self.device.turn_off_led()
+
+    def connect(self):
+        serial = self.current_port()
+        try:
+            self.device.connect(serial)
+        except Exception as exc:
+            print(exc)
+            self.indicator.setText('Error')
+            self.indicator.setStyleSheet('color:red')
+            self.__change_buttons_availability(False)
+            return
+        else:
+            self.indicator.setText('Connected')
+            self.indicator.setStyleSheet('color:green')
+            self.__change_buttons_availability(True)
+
+    def disconnect(self):
+        self.device.disconnect()
+        self.indicator.setText('Disconnected')
+        self.indicator.setStyleSheet('color:black')
 
     def __set_buttons(self):
         self.left.ui.connectButton.clicked.connect(self.connect)
         self.left.ui.ethalonButton.clicked.connect(self.reference_measure)
         self.left.ui.singleButton.clicked.connect(self.single_measure)
         self.left.ui.multiButton.clicked.connect(self.spectrum_measurement)
-        # self.left.ui.startButton.clicked.connect(self.connect)
+        self.device._transport._progressBar.connect(self.__progress_bar_change)
 
-    def spectrum_measurement(self):
-        result = self.device.spectr_measurement()
-        print(result)
-        for color, values in result:
-            print(values)
+    def __change_buttons_availability(self, is_valid: bool):
+        self.left.ui.singleButton.setEnabled(is_valid)
+        self.left.ui.ethalonButton.setEnabled(is_valid)
+        self.left.ui.startButton.setEnabled(is_valid)
+        self.left.ui.multiButton.setEnabled(is_valid)
 
-    def reference_measure(self):
-        color, result = self.device.calibrate()
-        self.right.set_list_value(result)
-
-    def single_measure(self):
-        name = self.device.get_serial()
-        name.portName()
-        color = self.color_values
-        color, result = self.device.single_measurement(color)
-        sample = 'Sample'
-        result.insert(0, sample)
-        self.right.set_list_value(result)
-        time.sleep(1)
-        self.device.turn_off_led()
-
-    def connect(self):
-        serial = self.current_port()
-        mask = self.left.ui.portComboBox.currentText()
-        port = f'{serial}:{mask}'
-        is_connected = self.device.connect(serial)
-        self.indicator.setStyleSheet('color:green')
-
-    def disconnect(self):
-        self.device.disconnect()
+    def __progress_bar_change(self, color):
+        self.left.ui.progressBar.show()
+        h, __, ___, _ = color
+        bar_value = h // 3.6
+        self.left.ui.progressBar.setValue(bar_value)
+        if h == 359:
+            self.left.ui.progressBar.hide()
 
     def __set_custom(self):
         self.setGeometry(300, 100, 1000, 600)
         self.setWindowTitle("To_Test")
         self.setCentralWidget(self.holder)
+        self.left.ui.progressBar.hide()
 
     def __create_thread(self):
-        self.thread = QThread(self)
+        self.thread = QThread()
         self.serial = QSerialPort()
         self.device = DeviceController(DeviceTransport(self.serial))
         self.device.moveToThread(self.thread)
@@ -112,6 +179,6 @@ class SensorMainWindow(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = SensorMainWindow()
+    application = SensorMainWindowSettings()
     application.show()
     sys.exit(app.exec())

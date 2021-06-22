@@ -17,11 +17,11 @@ class DeviceTransport(QObject):
 
     # signals
     dataReady = pyqtSignal()
+    _progressBar = pyqtSignal(tuple)
 
     def __init__(self, serial: QSerialPort) -> None:
         super().__init__()
         self.serial = serial
-        # self.serial.readyRead.connect(self._read_data)
         self._data: List[float] = []
         self._color = None
         self.state = self.State.IDLE
@@ -35,10 +35,13 @@ class DeviceTransport(QObject):
         self.serial.close()
 
     def turn_off_led(self):
-        rgb = [0, 0, 0]
-        data = f"Mr{rgb[0]} g{rgb[1]} b{rgb[2]}\n".encode('ascii')
-        self.serial.write(data)
-        self.serial.clear()
+        sets = [f"Mr0 g50 b50\n", 'f"Mr1 g1 b1\n"']
+        for set in range(2):
+            data = sets[set].encode('ascii')
+            try:
+                self.serial.write(data)
+            except Exception as exc:
+                print(exc)
 
     def measure(self, color: QColor):
         rgb = color.getRgb()
@@ -51,7 +54,7 @@ class DeviceTransport(QObject):
             self.state = self.State.ERROR
 
     def calibrate(self):
-        self.serial.write(f"C\n".encode('ascii'))
+        self.serial.write(f"Mr255 g255 b255\n".encode('ascii'))
         self.state = self.State.MEASURE
 
     def _read_data(self):
@@ -81,9 +84,10 @@ class DeviceController(QObject):
         self._transport.disconnect()
 
     def turn_off_led(self):
-        self._transport.turn_off_led()
+        return self._transport.turn_off_led()
 
     def single_measurement(self, color: QColor) -> MeasurementData:
+        self._transport._progressBar.emit(color.getHsv())
         self._transport.measure(color)
         while self._transport.state is self._transport.State.MEASURE:
             pass
@@ -91,17 +95,19 @@ class DeviceController(QObject):
         return color, data
 
     def spectr_measurement(self) -> List[MeasurementData]:
-        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(10))
+        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(361))
         return [
             self.single_measurement(color) for color in hsv_spectr
         ]
 
     def calibrate(self) -> MeasurementData:
-        self._transport.calibrate()
-        while self._transport.state is self._transport.State.MEASURE:
-            pass
-        data = self._transport._data
-        return QColor(255, 255, 255), data
+        try:
+            self._transport.calibrate()
+        except Exception as exc:
+            print(exc)
+        else:
+            data = self._transport._data
+            return QColor(254, 254, 254), data
 
     def get_serial(self):
         return self._transport.serial

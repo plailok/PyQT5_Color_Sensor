@@ -5,7 +5,7 @@
 
 
 import sys
-from interfaces.main_window_settings import SensorMainWindow
+from interfaces.main_window_settings import SensorMainWindowSettings
 from PyQt5 import QtWidgets
 
 
@@ -17,7 +17,7 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = SensorMainWindow()
+    application = SensorMainWindowSettings()
     application.show()
     sys.exit(app.exec())
 
