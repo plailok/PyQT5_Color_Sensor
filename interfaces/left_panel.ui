@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>301</width>
-    <height>294</height>
+    <width>283</width>
+    <height>296</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -100,19 +100,6 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QLineEdit" name="lineEdit">
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-        <property name="placeholderText">
-         <string>Set next set name</string>
-        </property>
-        <property name="clearButtonEnabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QPushButton" name="ethalonButton">
@@ -131,11 +118,11 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QPushButton" name="startButton">
+         <widget class="QPushButton" name="blackButton">
           <property name="text">
-           <string>START</string>
+           <string>BLACK</string>
           </property>
          </widget>
         </item>
@@ -143,6 +130,24 @@
          <widget class="QPushButton" name="multiButton">
           <property name="text">
            <string>MULTY</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="ec1Button">
+          <property name="text">
+           <string>EC 1</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="ec2Button">
+          <property name="text">
+           <string>EC 2</string>
           </property>
          </widget>
         </item>

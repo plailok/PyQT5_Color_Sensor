@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime
 
 import pandas as pd
@@ -6,8 +5,13 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLineEdit, QPushButton, QHBoxLayout, QWidget, QTableWidgetItem, QFileDialog
 
-from right_panel import Ui_Form as WidgetRightPanel
-
+try:
+    from right_panel import Ui_Form as WidgetRightPanel
+    from widget_table import MyTableMain
+except ModuleNotFoundError as exc:
+    print(exc)
+    from .right_panel import Ui_Form as WidgetRightPanel
+    from .widget_table import MyTableMain
 
 class ExcelSaver:
     class Default:
@@ -59,11 +63,17 @@ class RightPanel(QtWidgets.QWidget):
     REGULAR_S = r'S\d*'
 
     def __init__(self, parent=None):
+        """
+        self.RESULT = {sample_count: {n:[result_list]}}
+        self.RESULT[sample_count] = {n:[result_list]}
+        self.RESULT[sample_count][n] = [result_list]
+        :param parent:
+        """
         super().__init__()
         self.parent = parent if parent else None
         self.ui = WidgetRightPanel()
         self.ui.setupUi(self)
-        self.count = 0
+        self.total_count = 0
         self.file_to_save_name = None
         self.admin_widget = None
         self.isSaved = False
@@ -77,68 +87,37 @@ class RightPanel(QtWidgets.QWidget):
 
     def set_list_value(self, values: list):
         self.RESULT.append(values)
+        print(self.RESULT)
         for index, value in enumerate(values):
             if value == 'None':
                 continue
             else:
                 item = QTableWidgetItem(str(value))
                 item.setTextAlignment(Qt.AlignCenter)
-                self.ui.tableWidget.setItem(self.count, index, item)
+                self.ui.tableWidget.setItem(self.total_count, index, item)
         self.increase_counter()
         self.isSaved = False
 
     def increase_counter(self):
-        self.count += 1
-        self.ui.tableWidget.setRowCount(self.count + 1)
-
-    def ic_correction(self):
-        """
-        Сумирует все строки из таблицы "ЕС" (reference) находит среднее
-        Далее из каждого "S" (Sample)
-        :return:
-        """
-        ec = []
-        s = []
-        for row in self.RESULT:
-            if 'EC' in row[0]:
-                ec.append(row)
-            else:
-                s.append(row)
-        dlina_stroki = len(ec)
-        ec_avg = []
-        value = 'EC_avg'
-        for index in range(1, len(ec[0])):
-            ec_avg.append(str(value // dlina_stroki)) if type(value) == int else ec_avg.append(value)
-            value = 0
-            for n in range(dlina_stroki):
-                value += int(ec[n][index])
-                print(value)
-        self.set_list_value(ec_avg)
-        ref_ec = []
-        for row in self.RESULT:
-            if 'EC' in row[0]:
-                ref_ec = row
-            else:
-                if not ref_ec:
-                    pass
-                else:
-                    for value in row[1:]:
-                        print(value)
+        self.total_count += 1
+        self.ui.tableWidget.setRowCount(self.total_count + 1)
 
     def admin_widget_control(self, is_hide: int):
         self.admin_widget.hide() if is_hide == 0 else self.admin_widget.show()
 
     def __set_table(self):
         self.ui.tableWidget.clear()
-        self.ui.tableWidget.setHorizontalHeaderLabels(self.LABELS)
+        self.ui.tableWidget.setHorizontalHeaderLabels(self.ui.tableWidget.SETTINGS.HEADER)
         self.ui.isAdminModeCheckButton.stateChanged.connect(self.__is_admin_mode)
         self.ui.saveTableButton.clicked.connect(self.__save_table)
         self.ui.clearTableButton.clicked.connect(self.__clear_table)
 
     def __save_table(self):
         if not self.saver:
-            file_name = QFileDialog.getSaveFileUrl(caption="Open Image",
+            file_name = QFileDialog.getSaveFileUrl(caption="Open ExcelFile",
                                                    filter="Excel File (*.xlsx *.xls )")
+            if not file_name:
+                file_name = 'Default_table'
             self.saver = ExcelSaver(name=file_name)
         self.__add_to_saver()
         self.saver.save()
@@ -146,7 +125,7 @@ class RightPanel(QtWidgets.QWidget):
     def __clear_table(self):
         self.ui.tableWidget.clear()
         self.ui.tableWidget.setHorizontalHeaderLabels(self.LABELS)
-        self.count = 0
+        self.total_count = 0
         self.ui.tableWidget.setRowCount(1)
 
     def __add_to_saver(self):
@@ -170,79 +149,80 @@ class RightPanel(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
+    import sys
     app = QtWidgets.QApplication([])
     application = RightPanel()
     application.show()
-    test = ['EC0', '23.21', '76.2', '61.2', '11', '23', '234',
-            '12', '11.25', '97.3', '88', '54', '234',
-            '23', '34.12', '54', '77', '12', '23']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC2', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC3', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC4', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC5', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC6', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC7', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['EC8', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
-    test = ['S1', '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234',
-            '123', '234', '123', '234', '123', '234']
-    application.set_list_value(test)
+    # test = ['EC0', '23.21', '76.2', '61.2', '11', '23', '234',
+    #         '12', '11.25', '97.3', '88', '54', '234',
+    #         '23', '34.12', '54', '77', '12', '23']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC2', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC3', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC4', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC5', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC6', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC7', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['EC8', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
+    # test = ['S1', '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234',
+    #         '123', '234', '123', '234', '123', '234']
+    # application.set_list_value(test)
     sys.exit(app.exec())

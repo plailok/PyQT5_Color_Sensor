@@ -1,9 +1,12 @@
 import sys
 
 from PyQt5 import QtWidgets
-from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
+from PyQt5.QtSerialPort import QSerialPortInfo
 
-from left_panel import Ui_Form as WidgetLeftPanel
+try:
+    from interfaces.left_panel import Ui_Form as WidgetLeftPanel
+except ModuleNotFoundError:
+    from interfaces.left_panel import Ui_Form as WidgetLeftPanel
 
 
 class LeftPanel(QtWidgets.QWidget):
@@ -18,7 +21,6 @@ class LeftPanel(QtWidgets.QWidget):
 
     def __setup_buttons(self):
         self.ui.refreshButton.clicked.connect(self.__refresh_pressed)
-        self.ui.startButton.clicked.connect(self.__start_pressed)
         self.ui.singleButton.clicked.connect(self.__single_pressed)
         self.ui.multiButton.clicked.connect(self.__multi_pressed)
 
@@ -30,13 +32,15 @@ class LeftPanel(QtWidgets.QWidget):
     def __single_pressed(self):
         print('single') if not self.parent else None
 
-    def __start_pressed(self):
-        print('start') if not self.parent else None
-        pass
-
     def __multi_pressed(self):
         print('multi') if not self.parent else None
         pass
+
+    def __ec_1_pressed(self):
+        print('ec_1') if not self.parent else None
+
+    def __ec_2_pressed(self):
+        print('ec2_pressed') if not self.parent else None
 
     def __set_comport_combobox(self):
         port_info = QSerialPortInfo()
