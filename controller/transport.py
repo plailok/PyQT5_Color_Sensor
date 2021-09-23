@@ -22,7 +22,7 @@ class DeviceTransport(QObject):
     def __init__(self, serial: QSerialPort) -> None:
         super().__init__()
         self.serial = serial
-        self._data: List[float] = []
+        self._data = []
         self._color = None
         self.state = self.State.IDLE
 
@@ -48,7 +48,7 @@ class DeviceTransport(QObject):
         data = f"Mr{rgb[0]} g{rgb[1]} b{rgb[2]}\n".encode('ascii')
         self.serial.write(data)
         self.state = self.State.MEASURE
-        if self.serial.waitForReadyRead(100000):
+        if self.serial.waitForReadyRead(10000):
             self._read_data()
         else:
             self.state = self.State.ERROR
@@ -60,15 +60,23 @@ class DeviceTransport(QObject):
     def _read_data(self):
         if self.serial.read(1) == b'D':
             data = ''
-            d = self.serial.readAll()
             while self.serial.waitForReadyRead(50):
                 data += str(self.serial.readAll(), 'ascii')
-            self._data = [float(val) for val in d[:-4].split(',')]
+            d = self.serial.readAll()
+            self._data = []
+            try:
+                self._data = [float(value) for value in d[:-4].split(',')]
+            except Exception as exc:
+                print(exc)
         else:
             self.serial.clear(self.serial.Direction.AllDirections)
             self._data = None
         self.state = self.State.IDLE
         self.dataReady.emit()
+
+    @property
+    def progressBar(self):
+        return self._progressBar
 
 
 class DeviceController(QObject):
@@ -87,7 +95,6 @@ class DeviceController(QObject):
         return self._transport.turn_off_led()
 
     def single_measurement(self, color: QColor) -> MeasurementData:
-        self._transport._progressBar.emit(color.getHsv())
         self._transport.measure(color)
         while self._transport.state is self._transport.State.MEASURE:
             pass
@@ -95,7 +102,7 @@ class DeviceController(QObject):
         return color, data
 
     def spectr_measurement(self) -> List[MeasurementData]:
-        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(361))
+        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(0, 360, 30))
         return [
             self.single_measurement(color) for color in hsv_spectr
         ]
@@ -111,3 +118,7 @@ class DeviceController(QObject):
 
     def get_serial(self):
         return self._transport.serial
+
+    @property
+    def transport(self):
+        return self._transport

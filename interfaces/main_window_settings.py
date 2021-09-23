@@ -17,9 +17,9 @@ try:
     from widget_left_panel import LeftPanel
     from widget_right_panel import RightPanel
 except ModuleNotFoundError:
-    from widget_color_setting import ColorSettings
-    from widget_left_panel import LeftPanel
-    from widget_right_panel import RightPanel
+    from .widget_color_setting import ColorSettings
+    from .widget_left_panel import LeftPanel
+    from .widget_right_panel import RightPanel
 
 
 class SensorMainWindowSettings(QtWidgets.QMainWindow):
@@ -32,18 +32,18 @@ class SensorMainWindowSettings(QtWidgets.QMainWindow):
             10 - 705, 3 - 730, 4 - 760, 5 - 810, 6 - 860, 11 - 900
             12 - 940
         """
-        correct_position = [0, 13, 14, 15, 16, 17,
-                            18, 7, 8, 1, 9, 2, 10,
-                            3, 4, 5, 6, 11, 12]
+        correct_position = [12, 13, 14, 15, 16,
+                            17, 6, 7, 0, 8, 1, 9,
+                            2, 3, 4, 5, 10, 11]
 
         def get_corrected(self, result: list) -> list:
             return [result[index] for index in self.correct_position]
 
-    def __init__(self, isTest=False):
+    def __init__(self):
         super().__init__()
         self.__create_thread()
         self.__set_and_place_widgets()
-        self.__set_buttons(isTest)
+        self.__set_buttons()
         self.__set_custom()
 
     def spectrum_measurement(self):
@@ -54,7 +54,7 @@ class SensorMainWindowSettings(QtWidgets.QMainWindow):
         """Made a reference measurement RGB = (255,255,255) <= white color"""
         pass
 
-    def single_measure(self, is_calibrate: bool = None, color=None):
+    def single_measure(self):
         """Made one measurement of spectra according to HSV or RGB parameter"""
         pass
 
@@ -101,8 +101,11 @@ class SensorMainWindowSettings(QtWidgets.QMainWindow):
     def _change_buttons_availability(self, is_valid: bool):
         self.left.ui.singleButton.setEnabled(is_valid)
         self.left.ui.ethalonButton.setEnabled(is_valid)
-        self.left.ui.startButton.setEnabled(is_valid)
         self.left.ui.multiButton.setEnabled(is_valid)
+        self.left.ui.blackButton.setEnabled(is_valid)
+        self.left.ui.ec2Button.setEnabled(is_valid)
+        self.left.ui.ec1Button.setEnabled(is_valid)
+        self.color.setEnabled(is_valid)
 
     def _progress_bar_change(self, color):
         self.left.ui.progressBar.show()
@@ -112,22 +115,16 @@ class SensorMainWindowSettings(QtWidgets.QMainWindow):
         if h == 359:
             self.left.ui.progressBar.hide()
 
-    def __set_buttons(self, isTest=False):
+    def __set_buttons(self):
         self.left.ui.connectButton.clicked.connect(self.connect)
         self.left.ui.ec1Button.clicked.connect(self.right.ui.tableWidget.ec_correction_1)
         self.left.ui.ec2Button.clicked.connect(self.right.ui.tableWidget.ec_correction_2)
         self.device.transport.progressBar.connect(self._progress_bar_change)
-        if not isTest:
-            self.left.ui.ethalonButton.clicked.connect(self.reference_measure)
-            self.left.ui.singleButton.clicked.connect(self.single_measure)
-            self.left.ui.blackButton.clicked.connect(self.black_measure)
-            self.left.ui.multiButton.clicked.connect(self.spectrum_measurement)
-        else:
-            import random
-            self.left.ui.ethalonButton.clicked.connect(self.reference_measure_test)
-            self.left.ui.singleButton.clicked.connect(self.single_measure_test)
-            self.left.ui.blackButton.clicked.connect(self.black_measure_test)
-            self.left.ui.multiButton.clicked.connect(self.spectrum_measurement_test)
+        self.left.ui.ethalonButton.clicked.connect(self.reference_measure)
+        self.left.ui.singleButton.clicked.connect(self.single_measure)
+        self.left.ui.blackButton.clicked.connect(self.black_measure)
+        self.left.ui.multiButton.clicked.connect(self.spectrum_measurement)
+        self._change_buttons_availability(False)
 
     def __set_custom(self):
         self.setGeometry(300, 100, 1000, 600)
@@ -165,8 +162,8 @@ class SensorMainWindowSettings(QtWidgets.QMainWindow):
 
 class SensorMainWindowControl(SensorMainWindowSettings):
 
-    def __init__(self, isTest=False):
-        super().__init__(isTest)
+    def __init__(self):
+        super().__init__()
         # => MAIN
         self.color_values = self.color.color
         self.indicator = self.left.ui.respondLineEdit
@@ -190,45 +187,42 @@ class SensorMainWindowControl(SensorMainWindowSettings):
     def reference_measure(self):
         """
         Reference measurement
-        :return:
         """
         cur_color = self.color_values.getRgb()
         self.color_values.setRgb(254, 254, 254)
-        self.single_measure(is_calibrate=True, color=self.color_values)
+        color, result = self.device.single_measurement(color=self.color_values)
+        corrected_result = self.positioner.get_corrected(result)
+        corrected_result.insert(0, 'ethalon')
         self.color_values.setRgb(*cur_color)
-        self.device.turn_off_led()
+        self.right.ui.tableWidget.add(data=corrected_result)  # add corrected result to the table and to the memory
+        self._change_buttons_availability(True)
 
-    def single_measure(self, is_calibrate: bool = None, color=None):
+    def single_measure(self, color=None, isblack=False):
         """
         is_calibrate == True & color is not None => Etalon measurement ( color = (255, 255, 255) )
         is_calibrate == False & color is None =>
         is_calibrate is None & color is None => Normal single measurement
-        :param is_calibrate:
+        :param isblack:
         :param color:
         :return:
         """
         self._change_buttons_availability(False)
-        if is_calibrate is True and color:
-            rgb_color = color
-            color, result = self.device.single_measurement(rgb_color)
-            set_name = 'ethalon'
-        elif is_calibrate is False:
-            rgb_color = self.color_values
-            color, result = self.device.single_measurement(rgb_color)
-            set_name = self.left.ui.lineEdit.text()
-            if set_name == '':
-                set_name = 'measurements'
-        else:
-            rgb_color = self.color_values
-            color, result = self.device.single_measurement(rgb_color)
-            set_name = 'measurements'
-        self.device.turn_off_led()
-        result.insert(0, set_name)
-        corrected_result = self.positioner.get_corrected(result)
+        color, result = self.device.single_measurement(self.color_values)
+        corrected_result = self.positioner.get_corrected(result=result)
+        set_name = 'black' if isblack is True else 'measurements'
+        corrected_result.insert(0, set_name)
         self.right.ui.tableWidget.add(data=corrected_result)  # add corrected result to the table and to the memory
-        time.sleep(3)
         self._change_buttons_availability(True)
-        self.device.turn_off_led()
+
+    def black_measure(self):
+        """
+        Reference measurement
+        :return:
+        """
+        cur_color = self.color_values.getRgb()
+        self.color_values.setHsv(0, 0, 0)
+        self.single_measure(isblack=True, color=self.color_values)
+        self.color_values.setRgb(*cur_color)
 
     def connect(self):
         serial = self.current_port()
@@ -253,6 +247,6 @@ class SensorMainWindowControl(SensorMainWindowSettings):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
-    application = SensorMainWindowControl(isTest=True)
+    application = SensorMainWindowControl()
     application.show()
     sys.exit(app.exec())

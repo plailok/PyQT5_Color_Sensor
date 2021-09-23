@@ -9,7 +9,11 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from widget_table import MyTableMain
+
+try:
+    from widget_table import MyTableMain
+except ModuleNotFoundError:
+    from .widget_table import MyTableMain
 
 
 class Ui_Form(object):
@@ -35,53 +39,7 @@ class Ui_Form(object):
         self.verticalLayout_2.addWidget(self.isAdminModeCheckButton)
         self.verticalLayout.addWidget(self.groupBox)
         self.tableWidget = MyTableMain()
-        # self.tableWidget.setTabKeyNavigation(False)
-        # self.tableWidget.setProperty("showDropIndicator", False)
-        # self.tableWidget.setDragDropOverwriteMode(False)
-        # self.tableWidget.setAlternatingRowColors(True)
-        # self.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        # self.tableWidget.setTextElideMode(QtCore.Qt.ElideNone)
-        # self.tableWidget.setGridStyle(QtCore.Qt.NoPen)
-        # self.tableWidget.setRowCount(2)
-        # self.tableWidget.setColumnCount(19)
-        # self.tableWidget.setObjectName("tableWidget")
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 0, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 1, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 2, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 3, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 4, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 5, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 6, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 7, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 8, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 9, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 10, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 11, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 12, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 13, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 14, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 15, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 16, item)
-        # item = QtWidgets.QTableWidgetItem()
-        # self.tableWidget.setItem(0, 17, item)
-        # item = QtWidgets.QTableWidgetItem()
+
         font = QtGui.QFont()
         font.setBold(False)
         font.setUnderline(False)
@@ -89,13 +47,6 @@ class Ui_Form(object):
         font.setStrikeOut(False)
         font.setKerning(False)
         font.setStyleStrategy(QtGui.QFont.PreferDefault)
-        # item.setFont(font)
-        # self.tableWidget.setItem(0, 18, item)
-        # self.tableWidget.horizontalHeader().setVisible(True)
-        # self.tableWidget.horizontalHeader().setCascadingSectionResizes(False)
-        # self.tableWidget.horizontalHeader().setDefaultSectionSize(50)
-        # self.tableWidget.horizontalHeader().setHighlightSections(False)
-        # self.tableWidget.verticalHeader().setVisible(False)
         self.verticalLayout.addWidget(self.tableWidget)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -163,6 +114,7 @@ class Ui_Form(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     Form = QtWidgets.QWidget()
     ui = Ui_Form()

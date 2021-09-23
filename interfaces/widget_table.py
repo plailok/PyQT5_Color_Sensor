@@ -1,7 +1,9 @@
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QErrorMessage
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QErrorMessage, QFileDialog
 import sys
 from PyQt5.QtWidgets import QApplication
 from math import fabs
+import openpyxl
+import pandas as pd
 
 
 class MyTableSetting(QTableWidget):
@@ -48,6 +50,7 @@ class MyTableSetting(QTableWidget):
         """
         if self.data is None:
             self.data = {self.exp_counter: data}
+            self.data[self.exp_counter].update({'measurements': []})
             for value in self.data[self.exp_counter].items():
                 self._add_to_table_noname(value)
             return
@@ -116,6 +119,8 @@ class MyTableMain(MyTableSetting):
         super().__init__(size=(19, 1))
         self.ec1_corrected_data = {}
         self.ec2_corrected_data = {}
+        self.wb = None
+        self.ws = None
 
     def add(self, data: list):
         """
@@ -126,6 +131,7 @@ class MyTableMain(MyTableSetting):
                        с сенсора внутри спектрофотометра:
         :return:
         """
+
         type = data[0]
         value = data[1:]
         self._add_to_dict(data={type: value})
@@ -141,8 +147,11 @@ class MyTableMain(MyTableSetting):
         :return:
         """
         amount_of_ethalon = len(self.data)
+        for name in self.SETTINGS.TECHNICAL_NAMES:
+            if name in self.data.keys():
+                amount_of_ethalon -= 1
         self.data.update({'EC_correction_1': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ]})
-        # Find median of ethalonic measurement
+        # Find median of references measurement
         for experiment in self.data:
             if experiment not in self.SETTINGS.TECHNICAL_NAMES:
                 for index, et_data in enumerate(self.data[experiment]['ethalon']):
@@ -182,11 +191,42 @@ class MyTableMain(MyTableSetting):
                             i_black = black[index]
                             i_ref = ec_corrected[index]
                             i_sample = value
-                            number = fabs((i_ref - i_black) / (i_sample - i_black))
-                            corrected_result = round(log10(number), 2)
+                            try:
+                                number = fabs((i_sample - i_black) / (i_ref - i_black))
+                            except ZeroDivisionError as error:
+                                print(error)
+                                print('Sample value', i_ref)
+                                print('Black_value', i_black)
+                                print('Corrected Sample Value', i_sample)
+                                number = 0
+                            try:
+                                corrected_result = round(log10(number), 2)
+                            except ValueError:
+                                corrected_result = 'None'
                             corrected_measurement_dat.append(corrected_result)
                         self.ec2_corrected_data[experiment].append(corrected_measurement_dat)
                         self._add_to_table_noname(data=(f'ec2_corr_exp{experiment}', [corrected_measurement_dat]))
+
+    # TODO закончить функции таблицы (сохр, загрузка, иморт)
+    def create_excel_file(self):
+        path = QFileDialog.getSaveFileName()
+        file = openpyxl.Workbook()
+        file.save(path[0])
+        self.wb = openpyxl.load_workbook(path[0])
+        self.ws = self.wb.get_sheet_by_name('Sheet')
+
+    def load_excel_file(self):
+        pass
+
+    def _set_header(self):
+        pass
+
+    def get_all_table_result(self):
+        if self.wb is None or self.ws is None:
+            self.create_excel_file()
+        for i in range(self.rowCount() - 1):
+            for j in range(self.columnCount()):
+                self.ws.cell(i + 1, j + 1).value = self.item(i, j).text()
 
 
 if __name__ == '__main__':
@@ -207,6 +247,10 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     widget = MyTableMain()
     widget.show()
+    # widget.add(data=et1)
+    # widget.add(data=m1)
+    # widget.add(data=m2)
+    # widget.get_all_table_result()
     # widget.ec_correction_1()
     # widget.EC_correction_2()
     app.exec()
