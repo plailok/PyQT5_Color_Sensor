@@ -9,7 +9,6 @@ try:
     from right_panel import Ui_Form as WidgetRightPanel
     from widget_table import MyTableMain
 except ModuleNotFoundError as exc:
-    print(exc)
     from .right_panel import Ui_Form as WidgetRightPanel
     from .widget_table import MyTableMain
 
