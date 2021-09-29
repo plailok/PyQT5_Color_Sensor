@@ -13,10 +13,12 @@ from controller import (
 )
 
 try:
+    from widget_chose_step_dialog import ChoseStepDialog
     from widget_color_setting import ColorSettings
     from widget_left_panel import LeftPanel
     from widget_right_panel import RightPanel
 except ModuleNotFoundError:
+    from .widget_chose_step_dialog import ChoseStepDialog
     from .widget_color_setting import ColorSettings
     from .widget_left_panel import LeftPanel
     from .widget_right_panel import RightPanel
@@ -175,14 +177,24 @@ class SensorMainWindowControl(SensorMainWindowSettings):
         Measure for each value for HSV circle
         :return:
         """
-        self._change_buttons_availability(False)
-        result = self.device.spectr_measurement()
-        self._change_buttons_availability(True)
-        for color, value in result:
-            h, s, v, _ = color.getHsv()
-            sample_type = 'measurements'
-            value.insert(0, sample_type)
-            self.right.ui.tableWidget.add(data=value)
+        dialog = ChoseStepDialog()
+        dialog.exec()
+        if dialog.rejected:
+            pass
+        elif dialog.accepted:
+            if dialog.is_modified:
+                h, s, v = dialog.get_hsv()
+            else:
+                h = dialog.get_h()
+                s, v = 255, 255
+            self._change_buttons_availability(False)
+            result = self.device.spectr_measurement(step=h, value=v, saturation=s)
+            self._change_buttons_availability(True)
+            for color, value in result:
+                h, s, v, _ = color.getHsv()
+                sample_type = 'measurements'
+                value.insert(0, sample_type)
+                self.right.ui.tableWidget.add(data=value)
 
     def reference_measure(self):
         """
@@ -238,11 +250,17 @@ class SensorMainWindowControl(SensorMainWindowSettings):
             self.indicator.setText('Connected')
             self.indicator.setStyleSheet('color:green')
             self._change_buttons_availability(True)
+            self.left.ui.connectButton.setText('DISCONNECT')
+            self.left.ui.connectButton.clicked.connect(self.disconnect)
 
     def disconnect(self):
-        self.device.disconnect()
-        self.indicator.setText('Disconnected')
-        self.indicator.setStyleSheet('color:black')
+        if self.device:
+            self.device.disconnect()
+            self.indicator.setText('Disconnected')
+            self.indicator.setStyleSheet('color:gray')
+            self._change_buttons_availability(False)
+            self.left.ui.connectButton.setText('CONNECT')
+            self.left.ui.connectButton.clicked.connect(self.connect)
 
 
 if __name__ == '__main__':

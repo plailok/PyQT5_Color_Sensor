@@ -209,11 +209,7 @@ class MyTableMain(MyTableSetting):
 
     # TODO закончить функции таблицы (сохр, загрузка, иморт)
     def create_excel_file(self):
-        path = QFileDialog.getSaveFileName()
-        file = openpyxl.Workbook()
-        file.save(path[0])
-        self.wb = openpyxl.load_workbook(path[0])
-        self.ws = self.wb.get_sheet_by_name('Sheet')
+        pass
 
     def load_excel_file(self):
         pass
@@ -222,17 +218,18 @@ class MyTableMain(MyTableSetting):
         pass
 
     def get_all_table_result(self):
-        if self.wb is None or self.ws is None:
-            self.create_excel_file()
+        all_info = []
         for i in range(self.rowCount() - 1):
+            all_info.append([])
             for j in range(self.columnCount()):
-                self.ws.cell(i + 1, j + 1).value = self.item(i, j).text()
+                all_info[i].append(self.item(i, j).text())
+        return all_info
 
 
 if __name__ == '__main__':
-    # et1 = ['ethalon', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-    # m1 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m2 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    et1 = ['ethalon', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+    m1 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    m2 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
     # m3 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
     # et2 = ['ethalon', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
     # m4 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
@@ -247,10 +244,18 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     widget = MyTableMain()
     widget.show()
-    # widget.add(data=et1)
-    # widget.add(data=m1)
-    # widget.add(data=m2)
-    # widget.get_all_table_result()
+    widget.add(data=et1)
+    widget.add(data=m1)
+    widget.add(data=m2)
+    data = widget.get_all_table_result()
+    column = ['Sample Name',
+              '410 nm', '435 nm', '460 nm', '485 nm', '510 nm', '535 nm',
+              '560 nm', '585 nm', '610 nm', '645 nm', '680 nm', '705 nm',
+              '730 nm', '760 nm', '810 nm', '860 nm', '900 nm', '940 nm']
+    d = pd.DataFrame(data, columns=column)
+    indexes = [] #TODO indexes - имена строк, если не указаны то будут цифры от 0 до n
+    d.to_excel("output.xlsx",
+             sheet_name='Sheet_name_1')
     # widget.ec_correction_1()
     # widget.EC_correction_2()
     app.exec()

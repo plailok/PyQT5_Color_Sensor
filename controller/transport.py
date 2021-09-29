@@ -101,8 +101,8 @@ class DeviceController(QObject):
         data = self._transport._data
         return color, data
 
-    def spectr_measurement(self) -> List[MeasurementData]:
-        hsv_spectr = (QColor.fromHsv(h, 255, 255) for h in range(0, 360, 30))
+    def spectr_measurement(self, step: int, value: int, saturation: int) -> List[MeasurementData]:
+        hsv_spectr = (QColor.fromHsv(h, value, saturation) for h in range(0, 360, step))
         return [
             self.single_measurement(color) for color in hsv_spectr
         ]
