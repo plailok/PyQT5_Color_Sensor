@@ -1,8 +1,9 @@
+import datetime
+
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QErrorMessage, QFileDialog
 import sys
 from PyQt5.QtWidgets import QApplication
 from math import fabs
-import openpyxl
 import pandas as pd
 
 
@@ -15,6 +16,7 @@ class MyTableSetting(QTableWidget):
                   '410 nm', '435 nm', '460 nm', '485 nm', '510 nm', '535 nm',
                   '560 nm', '585 nm', '610 nm', '645 nm', '680 nm', '705 nm',
                   '730 nm', '760 nm', '810 nm', '860 nm', '900 nm', '940 nm']
+        DEFAULT_NAME = f'{datetime.datetime}_output.xlsx'
 
     def __init__(self, size: tuple = None):
         """
@@ -106,6 +108,20 @@ class MyTableSetting(QTableWidget):
                 self.setItem(self.counter - 1, 0, QTableWidgetItem(data[0]))
                 self.fill_table(measurement)
 
+    def _file_dialog(self, type_of_dialog: int):
+        if type_of_dialog == 1:
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            files, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "output.xlsx",
+                                                   options=options)
+            return files
+        if type_of_dialog == 2:
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            files, _ = QFileDialog.getOpenFileNames(self, "QFileDialog.getOpenFileNames()", "",
+                                                    "Excel Files (*.xlsx,*xls);All Files (*)", options=options)
+            return files
+
     def fill_table(self, measurement):
         for index, value in enumerate(measurement):
             self.setItem(self.counter - 1, index + 1, QTableWidgetItem(str(value)))
@@ -122,7 +138,7 @@ class MyTableMain(MyTableSetting):
         self.wb = None
         self.ws = None
 
-    def add(self, data: list):
+    def add(self, data: list, wavelength: [float, str] = None):
         """
         Метод позволяет добавить данные в таблицу
         используя те данные, которые приходят нам с прибора
@@ -207,55 +223,92 @@ class MyTableMain(MyTableSetting):
                         self.ec2_corrected_data[experiment].append(corrected_measurement_dat)
                         self._add_to_table_noname(data=(f'ec2_corr_exp{experiment}', [corrected_measurement_dat]))
 
-    # TODO закончить функции таблицы (сохр, загрузка, иморт)
-    def create_excel_file(self):
-        pass
+    def save_excel_file(self):
+        try:
+            file = self._file_dialog(1)
+        except Exception as exc:
+            print(exc)
+            return
+        data = self.get_all_table_result()
+        indexes = [name.pop(0) for name in data]
+        column = ['410 nm', '435 nm', '460 nm', '485 nm', '510 nm', '535 nm',
+                  '560 nm', '585 nm', '610 nm', '645 nm', '680 nm', '705 nm',
+                  '730 nm', '760 nm', '810 nm', '860 nm', '900 nm', '940 nm']
+        d = pd.DataFrame(data, columns=column, index=indexes)
+        d.to_excel(file, sheet_name='Result')
 
     def load_excel_file(self):
-        pass
+        """
+        Import data from excel to our table.
+        Now it's work in a way that
+        :return:
+        """
+        try:
+            file = self._file_dialog(2)
+        except Exception as exc:
+            print(exc)
+            return
+        data = pd.read_excel(file.pop()).values  # type(data) == np.array
+        for row in data:
+            self.add(data=row)
 
-    def _set_header(self):
-        pass
+    def clear_table(self):
+        """
+        Clear all data in the table
+        set experiment counter to 0
+        set counter of row to 1
+        set row count to 1
+        """
+        self.clear()
+        self.exp_counter = 0
+        self.counter = 1
 
-    def get_all_table_result(self):
-        all_info = []
+        self.setRowCount(self.counter)
+        self.setHorizontalHeaderLabels(self.SETTINGS.HEADER)
+
+    def get_all_table_result(self) -> list:
+        """
+        Get data from the table
+        Return data in format list['sample_name', values x 18 times]
+        :return: list
+        """
+        data = []
         for i in range(self.rowCount() - 1):
-            all_info.append([])
+            data.append([])
             for j in range(self.columnCount()):
-                all_info[i].append(self.item(i, j).text())
-        return all_info
+                data[i].append(self.item(i, j).text())
+        return data
 
 
 if __name__ == '__main__':
-    et1 = ['ethalon', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-    m1 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    m2 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m3 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # et2 = ['ethalon', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m4 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m5 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m6 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # et3 = ['ethalon', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
-    # m7 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m8 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m9 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # m10 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-    # datas = [et1, m1, m2, m3, et2, m4, m5, m6, et3, m7, m8, m9, m10]
+    def add_to_table():
+        et1 = ['ethalon', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+        m1 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m2 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m3 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        et2 = ['ethalon', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m4 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m5 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m6 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        et3 = ['ethalon', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+        m7 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m8 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m9 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        m10 = ['measurements', 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        black = ['black', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        datas = [et1, m1, m2, m3, et2, m4, m5, m6, et3, m7, m8, m9, m10, black]
+        for d in datas:
+            widget.add(data=d)
+
+
     app = QApplication(sys.argv)
     widget = MyTableMain()
     widget.show()
-    widget.add(data=et1)
-    widget.add(data=m1)
-    widget.add(data=m2)
-    data = widget.get_all_table_result()
-    column = ['Sample Name',
-              '410 nm', '435 nm', '460 nm', '485 nm', '510 nm', '535 nm',
-              '560 nm', '585 nm', '610 nm', '645 nm', '680 nm', '705 nm',
-              '730 nm', '760 nm', '810 nm', '860 nm', '900 nm', '940 nm']
-    d = pd.DataFrame(data, columns=column)
-    indexes = [] #TODO indexes - имена строк, если не указаны то будут цифры от 0 до n
-    d.to_excel("output.xlsx",
-             sheet_name='Sheet_name_1')
-    # widget.ec_correction_1()
-    # widget.EC_correction_2()
+    add_to_table()
+    widget.ec_correction_1()
+    widget.ec_correction_2()
+    widget.save_excel_file()
+    widget.clear_table()
+    # widget.load_excel_file()
+    add_to_table()
     app.exec()

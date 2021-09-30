@@ -12,48 +12,27 @@ except ModuleNotFoundError as exc:
     from .right_panel import Ui_Form as WidgetRightPanel
     from .widget_table import MyTableMain
 
+
 class ExcelSaver:
     class Default:
         NAME = f"{datetime.now()}_data_set"
 
     def __init__(self, name=None):
         self.result = {}
-        self.labels = ['Name',
-                       '410', '435', '460', '485', '510', '535',
-                       '560', '585', '610', '645', '680', '705',
-                       '730', '760', '810', '860', '900', '940']
-        self.last_s = 'S0'
-        self.current_set = 0
-        self.file_name = name[0].url().split('/')[-1]
+        self.name = name  # TODO check what it mean
 
-    def save(self):
-        data = pd.DataFrame(self.result)
-        data.to_excel(self.file_name, sheet_name='Set_1')
+    def export_table(self):
+        pass
 
-    def add(self, result_in_line: dict):
-        """
-        По логике функция ожидает следующий вариант результата
-        result_in_line = ['Set_name', 'λ1', 'λ2', 'λ3', 'λ4', 'λ5',
-                        'λ6','λ7', 'λ8', 'λ9', 'λ10', 'λ11', 'λ12',
-                        'λ13', 'λ14', 'λ15', 'λ16', 'λ17', 'λ18']
-        :param result_in_line:
-        :return:
-        """
-        if isinstance(result_in_line, list):
-            if result_in_line[0][0].lower() == 'e':
-                self.result[result_in_line[0]] = {self.labels[index]: result_in_line[index] for index in
-                                                  range(1, len(result_in_line))}
-            elif result_in_line[0][0].lower() == 's' and self.result.get(result_in_line[0]) is None:
-                self.result[result_in_line[0]] = {self.labels[index]: result_in_line[index] for index in
-                                                  range(1, len(result_in_line))}
-            else:
-                self.current_set += 1
-                new_name = f'S{self.current_set}'
-                result_in_line[0] = new_name
-                self.result[result_in_line[0]] = {self.labels[index]: result_in_line[index] for index in
-                                                  range(1, len(result_in_line))}
+    def import_table(self):
+        pass
 
-    def load(self):
+    def add_result(self, result: dict = None):
+        if self.result:
+            self.renew_result(result=result)
+        pass
+
+    def renew_result(self, result: dict = None):
         pass
 
 
@@ -108,8 +87,12 @@ class RightPanel(QtWidgets.QWidget):
         self.ui.tableWidget.clear()
         self.ui.tableWidget.setHorizontalHeaderLabels(self.ui.tableWidget.SETTINGS.HEADER)
         self.ui.isAdminModeCheckButton.stateChanged.connect(self.__is_admin_mode)
-        self.ui.saveTableButton.clicked.connect(self.__save_table)
+        self.ui.exportTableButton.clicked.connect(self.__save_table)
         self.ui.clearTableButton.clicked.connect(self.__clear_table)
+        self.ui.importTableButton.clicked.connect(self.__import_table)
+
+    def __import_table(self):
+        pass
 
     def __save_table(self):
         if not self.saver:
@@ -149,6 +132,7 @@ class RightPanel(QtWidgets.QWidget):
 
 if __name__ == '__main__':
     import sys
+
     app = QtWidgets.QApplication([])
     application = RightPanel()
     application.show()
