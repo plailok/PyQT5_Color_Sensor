@@ -7,8 +7,8 @@ from PyQt5.QtCore import QThread
 from PyQt5.QtSerialPort import QSerialPort
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout)
 
-from controller.DeviceController import DeviceController
-from controller.DeviceTransport import DeviceTransport
+from controller.reSPECTool_control import DeviceController
+from controller.reSPECTool_device_transport import DeviceTransport
 
 try:
     from interface.GUI_setting.widget_chose_step_dialog import ChoseStepDialog

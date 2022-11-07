@@ -1,1 +1,1 @@
-from .DeviceTransport import DeviceController, DeviceTransport, DeviceData, MeasurementData
+from .reSPECTool_device_transport import DeviceController, DeviceTransport, DeviceData, MeasurementData

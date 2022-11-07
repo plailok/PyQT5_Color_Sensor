@@ -7,10 +7,7 @@ from PyQt5.QtCore import QThread
 from PyQt5.QtSerialPort import QSerialPort
 from PyQt5.QtWidgets import (QHBoxLayout, QVBoxLayout)
 
-from controller import (
-    DeviceController,
-    DeviceTransport,
-)
+from controller.reSPECTool_calibration import DeviseCalibrator
 
 try:
     from interface.main_window_settings import SensorMainWindowSettings
@@ -52,7 +49,7 @@ class SensorMainWindowControl(SensorMainWindowSettings):
                 h = dialog.get_h()
                 s, v = 255, 255
             self._change_buttons_availability(False)
-            result = self.device.spectr_measurement(step=h, value=v, saturation=s)
+            result = self.device.spectra_measurement(step=h, value=v, saturation=s)
             self._change_buttons_availability(True)
             for color, value in result:
                 h, s, v, _ = color.getHsv()
