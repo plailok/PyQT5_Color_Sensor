@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'interfaces/left_panel.ui'
+# Form implementation generated from reading ui file 'interface/left_panel.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
